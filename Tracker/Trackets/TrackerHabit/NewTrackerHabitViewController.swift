@@ -4,17 +4,17 @@ protocol NewTrackerHabitViewControllerDelegate: AnyObject {
     func didCreateNewTracker(_ tracker: Tracker, categoryName: String)
 }
 
-final class NewTrackerHabitViewController: UIViewController, ScheduleViewControllerDelegate {
+final class NewTrackerHabitViewController: UIViewController, ScheduleViewControllerDelegate, ViewConfigurable {
     
     // MARK: - Private variables
     
-    let dataTableView: [String] = ["Категория", "Расписание"]
-    var selectedDays: [WeekDay] = []
+    private let dataTableView: [TrackerDataType] = TrackerDataType.allCases
+    private var selectedDays: [WeekDay] = []
     weak var delegate: NewTrackerHabitViewControllerDelegate?
     
     // MARK: - Private UI elements
     
-    private let trackerNameTextField: UITextField = {
+    private lazy var trackerNameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Введите название трекера"
         textField.layer.cornerRadius = 16
@@ -30,7 +30,7 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         return textField
     }()
     
-    private let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.layer.cornerRadius = 16
@@ -41,22 +41,24 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         return tableView
     }()
     
-    private let cancelButton: UIButton = {
+    private lazy var cancelButton: UIButton = {
         let cancelButton = UIButton(type: .system)
         cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.setTitleColor(.ypRed, for: .normal)
         cancelButton.layer.borderColor = UIColor.ypRed.cgColor
+        cancelButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         cancelButton.layer.borderWidth = 1
         cancelButton.layer.cornerRadius = 16
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         return cancelButton
     }()
     
-    private let createButton: UIButton = {
+    private lazy var createButton: UIButton = {
         let createButton = UIButton(type: .system)
         createButton.setTitle("Создать", for: .normal)
         createButton.setTitleColor(.ypWhite, for: .normal)
         createButton.backgroundColor = .ypGray
+        createButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         createButton.layer.cornerRadius = 16
         createButton.translatesAutoresizingMaskIntoConstraints = false
         return createButton
@@ -64,7 +66,7 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
     
     //    MARK: - UI stack
     
-    private let buttonBottomStackView: UIStackView = {
+    private lazy var buttonBottomStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
@@ -79,26 +81,29 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         
         view.backgroundColor = .ypWhite
         navigationItem.hidesBackButton = true
-        setupUI()
+        setupView()
         setupConstraints()
         setupTableView()
         
         title = "Новая привычка"
         navigationController?.navigationBar.titleTextAttributes = [
-            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16),
+            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16, weight: .medium),
         ]
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
+        
+        trackerNameTextField.delegate = self
     }
+    
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height).isActive = true
     }
     
-    // MARK: - Setup UI
+    // MARK: - Setup Views
     
-    private func setupUI() {
+    func setupView() {
         [trackerNameTextField, tableView].forEach{
             view.addSubview($0)
         }
@@ -108,7 +113,7 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         view.addSubview(buttonBottomStackView)
     }
     
-    private func setupConstraints() {
+    func setupConstraints() {
         NSLayoutConstraint.activate([
             
             trackerNameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 28),
@@ -158,7 +163,11 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         )
         delegate?.didCreateNewTracker(newTracker, categoryName: "основная")
         dismiss(animated: true, completion: nil)
-        print(newTracker)
+    }
+    
+    func didSelectDays(_ days: [WeekDay]) {
+        self.selectedDays = days
+        tableView.reloadData()
     }
 }
 
@@ -174,17 +183,11 @@ extension NewTrackerHabitViewController: UITableViewDelegate, UITableViewDataSou
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "CellTableHabitController", for: indexPath) as? CellTableHabitController else {
             return UITableViewCell()
         }
-        cell.titleLabel.text = dataTableView[indexPath.row]
-        cell.backgroundColor = .ypBackground
         
-        if indexPath.row == 1 {
-            let allDays = Set(WeekDay.allCases)
-            if Set(selectedDays) == allDays {
-                cell.detailLabel.text = "Каждый день"
-            } else {
-                cell.detailLabel.text = selectedDays.sorted(by: { $0.rawValue < $1.rawValue }).map { $0.shortDisplayName }.joined(separator: ", ")
-            }
-        }
+        let title = dataTableView[indexPath.row]
+        let isScheduleRow = (indexPath.row == 1)
+        
+        cell.configure(title: title.displayName, selectedDays: isScheduleRow ? selectedDays : nil, isCategoryRow: isScheduleRow)
         
         if indexPath.row == dataTableView.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
@@ -198,21 +201,23 @@ extension NewTrackerHabitViewController: UITableViewDelegate, UITableViewDataSou
         let selectedItem = dataTableView[indexPath.row]
         
         switch selectedItem {
-        case "Категория":
+        case .category:
             print("категория")
-        case "Расписание":
+        case .schedule:
             let scheduleViewController = ScheduleViewController()
             scheduleViewController.delegate = self
             scheduleViewController.selectedDays = Set(selectedDays)
             let navController = UINavigationController(rootViewController: scheduleViewController)
             present(navController, animated: true, completion: nil)
-        default:
-            break
         }
     }
     
-    func didSelectDays(_ days: [WeekDay]) {
-        self.selectedDays = days
-        tableView.reloadData()
+}
+// MARK: - Extention UITextFieldDelegate
+
+extension NewTrackerHabitViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
 }

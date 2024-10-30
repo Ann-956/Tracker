@@ -59,3 +59,17 @@ enum WeekDay: Int, CaseIterable {
         }
     }
 }
+
+enum TrackerDataType: Int, CaseIterable {
+    case category
+    case schedule
+    
+    var displayName: String {
+        switch self {
+        case .category:
+            return "Категория"
+        case .schedule:
+            return "Расписание"
+        }
+    }
+}

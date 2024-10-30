@@ -1,12 +1,12 @@
 import UIKit
 
-final class TrackerCell: UICollectionViewCell {
+final class TrackerCell: UICollectionViewCell, ViewConfigurable {
     
     var markButtonAction: (() -> Void)?
     
     // MARK: - UI Elements
     
-    let emojiLabel: UILabel = {
+    private lazy var emojiLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
@@ -14,7 +14,7 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    let emojiContainerView: UIView = {
+    private lazy var emojiContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         view.layer.cornerRadius = 12
@@ -23,7 +23,7 @@ final class TrackerCell: UICollectionViewCell {
         return view
     }()
     
-    let trackerNameLabel: UILabel = {
+    private lazy var trackerNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = .ypWhite
@@ -31,7 +31,7 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    let daysCountLabel: UILabel = {
+    private lazy var daysCountLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = .ypBlack
@@ -39,11 +39,8 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    let markButton: UIButton = {
+    private lazy var markButton: UIButton = {
         let button = UIButton(type: .system)
-        let configuration = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-        let image = UIImage(systemName: "plus", withConfiguration: configuration)
-        button.setImage(image, for: .normal)
         button.tintColor = .ypWhite
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 17
@@ -53,7 +50,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - UI stack
     
-    let titleStackView: UIStackView = {
+    private lazy var titleStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 8
@@ -63,7 +60,7 @@ final class TrackerCell: UICollectionViewCell {
         return stackView
     }()
     
-    let daysStackView: UIStackView = {
+    private lazy var daysStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
@@ -76,7 +73,7 @@ final class TrackerCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupViews()
+        setupView()
         setupConstraints()
         markButton.addTarget(self, action: #selector(markButtonTappedAction), for: .touchUpInside)
     }
@@ -87,8 +84,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Setup Views
     
-    private func setupViews() {
-        
+    func setupView() {
         emojiContainerView.addSubview(emojiLabel)
         
         [emojiContainerView, trackerNameLabel].forEach {
@@ -102,7 +98,7 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
-    private func setupConstraints() {
+    func setupConstraints() {
         NSLayoutConstraint.activate([
             
             titleStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
@@ -142,20 +138,27 @@ final class TrackerCell: UICollectionViewCell {
         trackerNameLabel.text = tracker.name
         titleStackView.backgroundColor = tracker.color
         
-        daysCountLabel.text = "\(completedDays) дней"
+        daysCountLabel.text = daysCountString(count: completedDays)
         
         let configuration = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
         let imageName = isCompleted ? "checkmark" : "plus"
         let image = UIImage(systemName: imageName, withConfiguration: configuration)
         markButton.setImage(image, for: .normal)
-        markButton.tintColor = .ypWhite
         markButton.backgroundColor = isCompleted ? tracker.color.withAlphaComponent(0.3) : tracker.color
         
         markButton.isEnabled = !isFutureDate
         markButton.alpha = isFutureDate ? 0.5 : 1.0
     }
     
-    @objc func markButtonTappedAction() {
+    // MARK: - Action
+    
+    @objc private func markButtonTappedAction() {
         markButtonAction?()
+    }
+    
+    private func daysCountString(count: Int) -> String {
+        let formatString: String = NSLocalizedString("days_сount", comment: "")
+        let resultString: String = String.localizedStringWithFormat(formatString, count)
+        return resultString
     }
 }

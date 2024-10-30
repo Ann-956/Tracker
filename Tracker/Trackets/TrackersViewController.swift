@@ -1,6 +1,6 @@
 import UIKit
 
-final class TrackersViewController: UIViewController, NewTrackerHabitViewControllerDelegate {
+final class TrackersViewController: UIViewController, NewTrackerHabitViewControllerDelegate, ViewConfigurable  {
     
     //      MARK: - Private variables
     
@@ -27,7 +27,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return navBarButton
     }()
     
-    private let datePicker: UIDatePicker = {
+    private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.preferredDatePickerStyle = .compact
         picker.datePickerMode = .date
@@ -37,7 +37,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return picker
     }()
     
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
         label.textColor = .ypBlack
@@ -46,14 +46,14 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return label
     }()
     
-    private let searchBar: UISearchController = {
+    private lazy var searchBar: UISearchController = {
         let searchController = UISearchController()
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.placeholder = "Поиск"
         return searchController
     }()
     
-    private let starImage: UIImageView = {
+    private lazy var starImage: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "Error")
         imageView.contentMode = .scaleAspectFit
@@ -61,7 +61,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return imageView
     }()
     
-    private let errorLable: UILabel = {
+    private lazy var errorLable: UILabel = {
         let label = UILabel()
         label.text = "Что будем отслеживать?"
         label.textColor = .ypBlack
@@ -71,7 +71,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return label
     }()
     
-    private let collectionView: UICollectionView = {
+    private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         
@@ -87,7 +87,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     
     //    MARK: - UI stack
     
-    private let infoStackView: UIStackView = {
+    private lazy var infoStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 7
@@ -95,7 +95,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return stackView
     }()
     
-    private let starStackView: UIStackView = {
+    private lazy var starStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 8
@@ -118,18 +118,18 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         collectionView.register(SectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeader.reuseIdentifier)
         
         datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
-
+        
         updateViewVisibility()
     }
     
-    //    MARK: - Private Methods setup
+    //    MARK: - Setup Views
     
     private func setupNavBar() {
         navigationItem.leftBarButtonItem = addTrackerButton
         navigationItem.rightBarButtonItem = choiceDate
     }
     
-    private func setupView() {
+    func setupView() {
         [titleLabel, searchBar.searchBar].forEach{
             infoStackView.addArrangedSubview($0)
         }
@@ -141,7 +141,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         }
     }
     
-    private func setupConstraints() {
+    func setupConstraints() {
         NSLayoutConstraint.activate([
             
             infoStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 1),
@@ -162,7 +162,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         ])
     }
     
-    func updateViewVisibility() {
+    private func updateViewVisibility() {
         if visibleCategories.isEmpty {
             starStackView.isHidden = false
             collectionView.isHidden = true
@@ -175,12 +175,12 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     
     //    MARK: - Action
     
-    @objc func datePickerValueChanged(_ sender: UIDatePicker) {
+    @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
         filterTrackersForSelectedDate()
     }
     
-    @objc func addTrackerTapped() {
+    @objc private func addTrackerTapped() {
         let createTrackerViewController = CreateTrackerViewController()
         createTrackerViewController.delegate = self
         let navController = UINavigationController(rootViewController: createTrackerViewController)
@@ -189,7 +189,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     
     func didCreateNewTracker(_ tracker: Tracker, categoryName: String) {
         var newCategories = categories
-
+        
         if let index = newCategories.firstIndex(where: { $0.name == categoryName }) {
             let existingCategory = newCategories[index]
             var updatedTrackers = existingCategory.trackers
@@ -200,28 +200,28 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
             let newCategory = TrackerCategory(name: categoryName, trackers: [tracker])
             newCategories.append(newCategory)
         }
-
+        
         categories = newCategories
         filterTrackersForSelectedDate()
         updateViewVisibility()
     }
     
-    func markButtonTapped(at indexPath: IndexPath) {
+    private func markButtonTapped(at indexPath: IndexPath) {
         let selectedDate = currentDate
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
-
+        
         guard Calendar.current.compare(selectedDate, to: Date(), toGranularity: .day) != .orderedDescending else {
             return
         }
-
+        
         let record = TrackerRecord(trackerId: tracker.id, date: selectedDate)
-
+        
         if completedTrackers.contains(record) {
             completedTrackers.remove(record)
         } else {
             completedTrackers.insert(record)
         }
-
+        
         collectionView.reloadItems(at: [indexPath])
     }
     
@@ -262,28 +262,28 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return visibleCategories[section].trackers.count
-
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? TrackerCell else {
             return UICollectionViewCell()
         }
-
+        
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
         let selectedDate = currentDate
         let isFutureDate = Calendar.current.compare(selectedDate, to: Date(), toGranularity: .day) == .orderedDescending
-
+        
         let isCompleted = completedTrackers.contains { record in
             record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
         }
         let completedDays = completedTrackers.filter { $0.trackerId == tracker.id }.count
-
+        
         cell.configure(with: tracker, isCompleted: isCompleted, completedDays: completedDays, isFutureDate: isFutureDate)
         cell.markButtonAction = { [weak self] in
             self?.markButtonTapped(at: indexPath)
         }
-
+        
         return cell
     }
     

@@ -4,17 +4,17 @@ protocol ScheduleViewControllerDelegate: AnyObject {
     func didSelectDays(_ days: [WeekDay])
 }
 
-final class ScheduleViewController: UIViewController {
+final class ScheduleViewController: UIViewController, ViewConfigurable {
     
     // MARK: - Private variables
     
     var selectedDays: Set<WeekDay> = []
     weak var delegate: ScheduleViewControllerDelegate?
-    private let weekDays: [WeekDay] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+    private let weekDays: [WeekDay] = WeekDay.allCases
     
     // MARK: - Private UI elements
     
-    private let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.layer.cornerRadius = 16
@@ -24,13 +24,14 @@ final class ScheduleViewController: UIViewController {
         return tableView
     }()
     
-    private let button: UIButton = {
+    private lazy var button: UIButton = {
         let button = UIButton()
         button.setTitle("Готово", for: .normal)
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .ypBlack
         button.setTitleColor(.ypWhite, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         return button
     }()
     
@@ -43,12 +44,12 @@ final class ScheduleViewController: UIViewController {
         
         title = "Расписание"
         navigationController?.navigationBar.titleTextAttributes = [
-            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16),
+            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16, weight: .medium),
         ]
         
         button.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
         
-        setupUI()
+        setupView()
         setupTableView()
         setupConstraints()
     }
@@ -58,9 +59,9 @@ final class ScheduleViewController: UIViewController {
         tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height).isActive = true
     }
     
-    // MARK: - Setup UI
+    // MARK: - Setup Views
     
-    private func setupUI() {
+    func setupView() {
         [tableView, button].forEach{
             view.addSubview($0)
         }
@@ -73,7 +74,7 @@ final class ScheduleViewController: UIViewController {
         tableView.rowHeight = 75
     }
     
-    private func setupConstraints() {
+    func setupConstraints() {
         NSLayoutConstraint.activate([
             
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 28),
@@ -89,7 +90,7 @@ final class ScheduleViewController: UIViewController {
     
     // MARK: - Actions
     
-    @objc func switchChanged(_ sender: UISwitch) {
+    @objc private func switchChanged(_ sender: UISwitch) {
         let day = weekDays[sender.tag]
         
         if sender.isOn {
@@ -99,17 +100,17 @@ final class ScheduleViewController: UIViewController {
         }
     }
     
-    @objc func doneTapped() {
-            let sortedDays = selectedDays.sorted { (day1, day2) -> Bool in
-                guard let index1 = weekDays.firstIndex(of: day1),
-                      let index2 = weekDays.firstIndex(of: day2) else {
-                    return false
-                }
-                return index1 < index2
+    @objc private func doneTapped() {
+        let sortedDays = selectedDays.sorted { (day1, day2) -> Bool in
+            guard let index1 = weekDays.firstIndex(of: day1),
+                  let index2 = weekDays.firstIndex(of: day2) else {
+                return false
             }
-            delegate?.didSelectDays(sortedDays)
-            dismiss(animated: true, completion: nil)
+            return index1 < index2
         }
+        delegate?.didSelectDays(sortedDays)
+        dismiss(animated: true, completion: nil)
+    }
 }
 
 // MARK: - Extention TableView
@@ -125,6 +126,7 @@ extension ScheduleViewController: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = day.displayName
         cell.backgroundColor = .ypBackground
+        cell.textLabel?.font = .systemFont(ofSize: 17)
         
         let switchView = UISwitch(frame: .zero)
         switchView.setOn(selectedDays.contains(day), animated: true)
