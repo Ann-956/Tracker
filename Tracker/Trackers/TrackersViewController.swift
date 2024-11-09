@@ -2,11 +2,14 @@ import UIKit
 
 final class TrackersViewController: UIViewController, NewTrackerHabitViewControllerDelegate, ViewConfigurable  {
     
-    //      MARK: - Private variables
+    //    MARK: - Private variebles
     
     private var categories: [TrackerCategory] = []
     private var completedTrackers: Set<TrackerRecord> = []
     private var visibleCategories: [TrackerCategory] = []
+    private let trackerStore = TrackerStore.shared
+    private let categoryStore = TrackerCategoryStore.shared
+    private let recordStore = TrackerRecordStore.shared
     private var currentDate: Date = Date()
     
     //    MARK: - Private UI elements
@@ -79,13 +82,12 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .ypWhite
         
-        
         collectionView.showsVerticalScrollIndicator = false
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "cell")
         return collectionView
     }()
     
-    //    MARK: - UI stack
+    // MARK: - UI Stack
     
     private lazy var infoStackView: UIStackView = {
         let stackView = UIStackView()
@@ -103,7 +105,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         return stackView
     }()
     
-    //    MARK: - Lifecycle Methods
+    //  MARK: - Lifecycle Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -119,10 +121,15 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         
         datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         
+        // Получаем данные из Core Data
+        fetchCategories()
+        fetchCompletedTrackers()
+        filterTrackersForSelectedDate()
+        
         updateViewVisibility()
     }
     
-    //    MARK: - Setup Views
+    // MARK: - Setup Views
     
     private func setupNavBar() {
         navigationItem.leftBarButtonItem = addTrackerButton
@@ -133,7 +140,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         [titleLabel, searchBar.searchBar].forEach{
             infoStackView.addArrangedSubview($0)
         }
-        [starImage,errorLable].forEach{
+        [starImage, errorLable].forEach{
             starStackView.addArrangedSubview($0)
         }
         [infoStackView, collectionView, starStackView].forEach{
@@ -173,7 +180,28 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         }
     }
     
-    //    MARK: - Action
+    // MARK: - Get Core Data
+    
+    private func fetchCategories() {
+        categoryStore.fetchCategories { [weak self] categories in
+            DispatchQueue.main.async {
+                self?.categories = categories
+                self?.filterTrackersForSelectedDate()
+                self?.updateViewVisibility()
+            }
+        }
+    }
+    
+    private func fetchCompletedTrackers() {
+        recordStore.fetchRecords { [weak self] records in
+            DispatchQueue.main.async {
+                self?.completedTrackers = Set(records)
+                self?.collectionView.reloadData()
+            }
+        }
+    }
+    
+    // MARK: - Actions
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
@@ -188,22 +216,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     }
     
     func didCreateNewTracker(_ tracker: Tracker, categoryName: String) {
-        var newCategories = categories
-        
-        if let index = newCategories.firstIndex(where: { $0.name == categoryName }) {
-            let existingCategory = newCategories[index]
-            var updatedTrackers = existingCategory.trackers
-            updatedTrackers.append(tracker)
-            let updatedCategory = TrackerCategory(name: existingCategory.name, trackers: updatedTrackers)
-            newCategories[index] = updatedCategory
-        } else {
-            let newCategory = TrackerCategory(name: categoryName, trackers: [tracker])
-            newCategories.append(newCategory)
-        }
-        
-        categories = newCategories
-        filterTrackersForSelectedDate()
-        updateViewVisibility()
+        fetchCategories()
     }
     
     private func markButtonTapped(at indexPath: IndexPath) {
@@ -217,12 +230,24 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         let record = TrackerRecord(trackerId: tracker.id, date: selectedDate)
         
         if completedTrackers.contains(record) {
-            completedTrackers.remove(record)
+            recordStore.deleteRecord(trackerId: tracker.id, date: selectedDate) { [weak self] success in
+                if success {
+                    self?.completedTrackers.remove(record)
+                    DispatchQueue.main.async {
+                        self?.collectionView.reloadItems(at: [indexPath])
+                    }
+                }
+            }
         } else {
-            completedTrackers.insert(record)
+            recordStore.addRecord(trackerId: tracker.id, date: selectedDate) { [weak self] success in
+                if success {
+                    self?.completedTrackers.insert(record)
+                    DispatchQueue.main.async {
+                        self?.collectionView.reloadItems(at: [indexPath])
+                    }
+                }
+            }
         }
-        
-        collectionView.reloadItems(at: [indexPath])
     }
     
     private func filterTrackersForSelectedDate() {
@@ -253,7 +278,8 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     }
     
 }
-//    MARK: - Extention UICollection
+
+// MARK: - Extention UICollectionView
 
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -315,5 +341,3 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         return UIEdgeInsets(top: 12, left: 0, bottom: 16, right: 0)
     }
 }
-
-

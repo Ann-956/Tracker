@@ -10,7 +10,12 @@ final class ScheduleViewController: UIViewController, ViewConfigurable {
     
     var selectedDays: Set<WeekDay> = []
     weak var delegate: ScheduleViewControllerDelegate?
-    private let weekDays: [WeekDay] = WeekDay.allCases
+    private let weekDays: [WeekDay] = {
+        let allDays = WeekDay.allCases
+        let startIndex = allDays.firstIndex(of: .monday) ?? 0
+        let reorderedDays = allDays[startIndex...] + allDays[..<startIndex]
+        return Array(reorderedDays)
+    }()
     
     // MARK: - Private UI elements
     
