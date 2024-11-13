@@ -1,6 +1,6 @@
 import CoreData
 
-class TrackerRecordStore {
+final class TrackerRecordStore {
     static let shared = TrackerRecordStore()
     private let context: NSManagedObjectContext
 
@@ -9,13 +9,26 @@ class TrackerRecordStore {
     }
 
     func addRecord(trackerId: UUID, date: Date, completion: @escaping (Bool) -> Void) {
-        let recordCoreData = TrackerRecordCoreData(context: context)
-        recordCoreData.trackerId = trackerId
-        recordCoreData.date = date
-
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            completion(false)
+            return
+        }
+        
+        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "trackerId == %@ AND date >= %@ AND date < %@", trackerId as CVarArg, startOfDay as NSDate, endOfDay as NSDate)
+        
         do {
-            try context.save()
-            completion(true)
+            let existingRecords = try context.fetch(request)
+            if existingRecords.isEmpty {
+                let recordCoreData = TrackerRecordCoreData(context: context)
+                recordCoreData.trackerId = trackerId
+                recordCoreData.date = startOfDay
+                try context.save()
+                completion(true)
+            } else {
+                completion(false)
+            }
         } catch {
             print("Не удалось добавить запись: \(error)")
             completion(false)
@@ -23,8 +36,15 @@ class TrackerRecordStore {
     }
 
     func deleteRecord(trackerId: UUID, date: Date, completion: @escaping (Bool) -> Void) {
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            completion(false)
+            return
+        }
+        
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "trackerId == %@ AND date == %@", trackerId as CVarArg, date as CVarArg)
+        request.predicate = NSPredicate(format: "trackerId == %@ AND date >= %@ AND date < %@", trackerId as CVarArg, startOfDay as NSDate, endOfDay as NSDate)
+        
         do {
             let records = try context.fetch(request)
             for record in records {

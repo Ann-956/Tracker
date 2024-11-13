@@ -74,11 +74,11 @@ final class CellTableHabitController: UITableViewCell, ViewConfigurable {
         ])
     }
     
-    func configure(title: String, selectedDays: [WeekDay]?, isCategoryRow: Bool) {
+    func configure(title: String, selectedDays: [WeekDay]?, categoryName: String?, isScheduleRow: Bool) {
         titleLabel.text = title
         backgroundColor = .ypBackground
-        
-        if isCategoryRow, let selectedDays = selectedDays {
+
+        if isScheduleRow, let selectedDays = selectedDays {
             let allDays = Set(WeekDay.allCases)
             if Set(selectedDays) == allDays {
                 detailLabel.text = "Каждый день"
@@ -88,6 +88,8 @@ final class CellTableHabitController: UITableViewCell, ViewConfigurable {
                     .map { $0.shortDisplayName }
                     .joined(separator: ", ")
             }
+        } else if !isScheduleRow, let categoryName = categoryName {
+            detailLabel.text = categoryName
         } else {
             detailLabel.text = nil
         }

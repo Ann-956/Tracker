@@ -121,7 +121,6 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         
         datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         
-        // Получаем данные из Core Data
         fetchCategories()
         fetchCompletedTrackers()
         filterTrackersForSelectedDate()
@@ -196,6 +195,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
         recordStore.fetchRecords { [weak self] records in
             DispatchQueue.main.async {
                 self?.completedTrackers = Set(records)
+                self?.filterTrackersForSelectedDate()
                 self?.collectionView.reloadData()
             }
         }
@@ -220,10 +220,11 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
     }
     
     private func markButtonTapped(at indexPath: IndexPath) {
-        let selectedDate = currentDate
+        let selectedDate = Calendar.current.startOfDay(for: currentDate)
+        let today = Calendar.current.startOfDay(for: Date())
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
         
-        guard Calendar.current.compare(selectedDate, to: Date(), toGranularity: .day) != .orderedDescending else {
+        guard selectedDate <= today else {
             return
         }
         
@@ -249,6 +250,7 @@ final class TrackersViewController: UIViewController, NewTrackerHabitViewControl
             }
         }
     }
+    
     
     private func filterTrackersForSelectedDate() {
         let selectedDate = currentDate
@@ -323,7 +325,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.bounds.width, height: 18)
+        return CGSize(width: collectionView.bounds.width, height: 20)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

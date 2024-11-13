@@ -23,7 +23,7 @@
 			<key>many</key>
 			<string>%d дней</string>
 			<key>other</key>
-			<string>%d дней</string>
+			<string>%d дня</string>
 		</dict>
 	</dict>
 </dict>

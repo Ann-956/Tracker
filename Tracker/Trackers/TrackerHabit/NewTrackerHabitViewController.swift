@@ -4,7 +4,7 @@ protocol NewTrackerHabitViewControllerDelegate: AnyObject {
     func didCreateNewTracker(_ tracker: Tracker, categoryName: String)
 }
 
-final class NewTrackerHabitViewController: UIViewController, ScheduleViewControllerDelegate, ViewConfigurable {
+final class NewTrackerHabitViewController: UIViewController, ScheduleViewControllerDelegate, ViewConfigurable, CategorySelectionDelegate {
     
     //    MARK: - Private variebles
     
@@ -19,6 +19,9 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         didSet { updateCreateButtonState() }
     }
     private var selectedColor: UIColor? {
+        didSet { updateCreateButtonState() }
+    }
+    private var selectedCategory: TrackerCategory? {
         didSet { updateCreateButtonState() }
     }
     private let trackerStore = TrackerStore.shared
@@ -242,7 +245,8 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
     @objc private func createTapped() {
         guard let trackerName = trackerNameTextField.text, !trackerName.isEmpty,
               let emoji = selectedEmoji,
-              let color = selectedColor else {
+              let color = selectedColor,
+        let categoryName = selectedCategory?.name else {
             return
         }
         
@@ -254,10 +258,10 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
             schedule: selectedDays
         )
         
-        trackerStore.createTracker(id: newTracker.id, name: newTracker.name, emoji: newTracker.emoji, color: newTracker.color, schedule: newTracker.schedule, categoryName: "Основная") { [weak self] tracker in
+        trackerStore.createTracker(id: newTracker.id, name: newTracker.name, emoji: newTracker.emoji, color: newTracker.color, schedule: newTracker.schedule, categoryName: categoryName) { [weak self] tracker in
             DispatchQueue.main.async {
                 guard let tracker = tracker else { return }
-                self?.delegate?.didCreateNewTracker(tracker, categoryName: "Основная")
+                self?.delegate?.didCreateNewTracker(tracker, categoryName: categoryName)
                 self?.dismiss(animated: true, completion: nil)
             }
         }
@@ -267,13 +271,15 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         updateCreateButtonState()
     }
     
+    
     // MARK: - Private Func
     
     private func updateCreateButtonState() {
         let isFormComplete = trackerNameTextField.text?.isEmpty == false &&
         selectedEmoji != nil &&
         selectedColor != nil &&
-        !selectedDays.isEmpty
+        !selectedDays.isEmpty &&
+        selectedCategory != nil
         
         createButton.isEnabled = isFormComplete
         createButton.backgroundColor = isFormComplete ? .ypBlack : .ypGray
@@ -303,6 +309,11 @@ final class NewTrackerHabitViewController: UIViewController, ScheduleViewControl
         let colorHeight = (colorRows * itemWidth) + ((colorRows - 1) * lineSpacing) + headerHeight + 24 + 24
         collectionColorView.heightAnchor.constraint(equalToConstant: colorHeight).isActive = true
     }
+    
+    func didSelectCategory(_ category: TrackerCategory) {
+        selectedCategory = category
+        tableView.reloadData()
+    }
 }
 
 // MARK: - Extention TableView
@@ -318,14 +329,21 @@ extension NewTrackerHabitViewController: UITableViewDelegate, UITableViewDataSou
             return UITableViewCell()
         }
         
+        let itemType = dataTableView[indexPath.row]
+        let isScheduleRow = itemType == .schedule
+        let isCategoryRow = itemType == .category
         
-        let title = dataTableView[indexPath.row]
-        let isScheduleRow = (indexPath.row == 1)
-        
-        cell.configure(title: title.displayName, selectedDays: isScheduleRow ? selectedDays : nil, isCategoryRow: isScheduleRow)
+        cell.configure(
+            title: itemType.displayName,
+            selectedDays: isScheduleRow ? selectedDays : nil,
+            categoryName: isCategoryRow ? selectedCategory?.name : nil,
+            isScheduleRow: isScheduleRow
+        )
         
         if indexPath.row == dataTableView.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         }
         
         return cell
@@ -337,7 +355,10 @@ extension NewTrackerHabitViewController: UITableViewDelegate, UITableViewDataSou
         
         switch selectedItem {
         case .category:
-            print("категория")
+            let categoryViewController = CategoryViewController()
+            categoryViewController.delegate = self
+            let navController = UINavigationController(rootViewController: categoryViewController)
+            present(navController, animated: true, completion: nil)
         case .schedule:
             let scheduleViewController = ScheduleViewController()
             scheduleViewController.delegate = self
