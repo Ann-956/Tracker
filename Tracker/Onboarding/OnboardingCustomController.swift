@@ -2,23 +2,19 @@ import UIKit
 
 final class OnboardingCustomController: UIViewController, ViewConfigurable {
     
-    //    MARK: - Variebles
+    //    MARK: - Private Variebles
     
-    var backgroundImageName: String?
-    var labelText: String?
-    var buttonAction: (() -> Void)?
+    private var pageModel: PageModel?
     
     // MARK: - Inizial
     
-    init(backgroundImageName: String?, labelText: String?, buttonAction: (() -> Void)?) {
+    init(pageModel: PageModel) {
+        self.pageModel = pageModel
         super.init(nibName: nil, bundle: nil)
-        self.backgroundImageName = backgroundImageName
-        self.labelText = labelText
-        self.buttonAction = buttonAction
     }
     
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
     
     //    MARK: - Private UI Elements
@@ -27,7 +23,7 @@ final class OnboardingCustomController: UIViewController, ViewConfigurable {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        if let imageName = backgroundImageName, let image = UIImage(named: imageName) {
+        if let image = pageModel?.imageName {
             imageView.image = image
         } else {
             imageView.backgroundColor = .white
@@ -35,9 +31,9 @@ final class OnboardingCustomController: UIViewController, ViewConfigurable {
         return imageView
     }()
     
-    private lazy var label = {
+    private lazy var labelTitle = {
         let label = UILabel()
-        label.text = labelText
+        label.text = pageModel?.text
         label.font = .boldSystemFont(ofSize: 32)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -46,17 +42,6 @@ final class OnboardingCustomController: UIViewController, ViewConfigurable {
         return label
     }()
     
-    private lazy var button = {
-        let button = UIButton()
-        button.setTitle("Вот это технологии!", for: .normal)
-        button.setTitleColor(.ypWhite, for: .normal)
-        button.backgroundColor = .ypBlack
-        button.layer.cornerRadius = 16
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(actionButtonTapped), for: .touchUpInside)
-        return button
-    }()
     
     //  MARK: - Lifecycle Methods
     
@@ -69,7 +54,7 @@ final class OnboardingCustomController: UIViewController, ViewConfigurable {
     // MARK: - Setup Views
     
     func setupView() {
-        [backgroundImage, label, button].forEach{
+        [backgroundImage, labelTitle].forEach{
             view.addSubview($0)
         }
     }
@@ -82,20 +67,9 @@ final class OnboardingCustomController: UIViewController, ViewConfigurable {
             backgroundImage.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backgroundImage.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
-            button.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            button.heightAnchor.constraint(equalToConstant: 60),
-            
-            label.bottomAnchor.constraint(equalTo: button.topAnchor, constant: -160),
-            label.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            label.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            labelTitle.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -270),
+            labelTitle.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            labelTitle.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
         ])
-    }
-    
-    // MARK: - Actions
-    
-    @objc private func actionButtonTapped() {
-        buttonAction?()
     }
 }

@@ -2,16 +2,19 @@ import UIKit
 
 final class CreateCategoryViewController: UIViewController, ViewConfigurable {
     
-    private let viewModel: CategoryViewModel
+    //    MARK: - Private variebles
     
-    init(viewModel: CategoryViewModel) {
-            self.viewModel = viewModel
-            super.init(nibName: nil, bundle: nil)
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) не был реализован")
-        }
+    private let viewModel: CategoryViewModelProtocol
+    
+    init(viewModel: CategoryViewModelProtocol) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) не был реализован")
+    }
+    
     // MARK: - Private UI elements
     
     private lazy var categoryNameTextField: UITextField = {
@@ -101,7 +104,6 @@ final class CreateCategoryViewController: UIViewController, ViewConfigurable {
     
     @objc private func createTapped() {
         guard let categoryName = categoryNameTextField.text, !categoryName.isEmpty else { return }
-        let viewModel = CategoryViewModel()
         viewModel.addCategory(name: categoryName)
         navigationController?.popViewController(animated: true)
     }

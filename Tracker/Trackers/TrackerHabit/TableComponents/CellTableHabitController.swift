@@ -74,6 +74,8 @@ final class CellTableHabitController: UITableViewCell, ViewConfigurable {
         ])
     }
     
+    // MARK: - Public Configuration
+    
     func configure(title: String, selectedDays: [WeekDay]?, categoryName: String?, isScheduleRow: Bool) {
         titleLabel.text = title
         backgroundColor = .ypBackground

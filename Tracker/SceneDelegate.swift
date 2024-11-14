@@ -15,20 +15,34 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
         
         window = UIWindow(windowScene: windowScene)
+        window?.makeKeyAndVisible()
         
-        let userDefaults = UserDefaults.standard
-        let onboardingWasShown = userDefaults.bool(forKey: "onboardingWasShown")
-        
-        if onboardingWasShown {
-            let tabBarController = TabBarController()
-            window?.rootViewController = tabBarController
+        if UserDefaultsSettings.shared.onboardingWasShown {
+            switchToMainViewController()
         } else {
-            let onbording = OnboardingViewController()
-            window?.rootViewController = onbording
+            let onboardingVC = OnboardingViewController()
+            onboardingVC.didFinishOnboarding = { [weak self] in
+                self?.switchToMainViewController()
+            }
+            window?.rootViewController = onboardingVC
+        }
+    }
+    
+    private func switchToMainViewController() {
+        let tabBarController = TabBarController()
+        tabBarController.modalTransitionStyle = .crossDissolve
+        tabBarController.modalPresentationStyle = .fullScreen
+        
+        guard let window = window else {
+            window?.rootViewController = tabBarController
+            return
         }
         
-        window?.makeKeyAndVisible()
+        UIView.transition(with: window, duration: 0.2, options: .transitionCrossDissolve, animations: {
+            window.rootViewController = tabBarController
+        })
     }
+    
     
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.

@@ -3,6 +3,10 @@ import UIKit
 
 final class OnboardingViewController: UIPageViewController, ViewConfigurable {
     
+    //    MARK: - Private Variebles
+    
+    var didFinishOnboarding: (() -> Void)?
+    
     // MARK: - Inizial
     
     init() {
@@ -16,21 +20,8 @@ final class OnboardingViewController: UIPageViewController, ViewConfigurable {
     //    MARK: - Private UI elements
     
     private lazy var pages: [UIViewController] = {
-        let firstPage = OnboardingCustomController(
-            backgroundImageName: "blue",
-            labelText: "Отслеживайте только то, что хотите",
-            buttonAction: { [weak self] in
-                self?.navigateToMainController()
-            }
-        )
-        
-        let secondPage = OnboardingCustomController(
-            backgroundImageName: "red",
-            labelText: "Даже если это не литры воды и йога",
-            buttonAction: { [weak self] in
-                self?.navigateToMainController()
-            }
-        )
+        let firstPage = OnboardingCustomController(pageModel: .firstPage)
+        let secondPage = OnboardingCustomController(pageModel: .secondPage)
         
         return [firstPage, secondPage]
     }()
@@ -43,6 +34,18 @@ final class OnboardingViewController: UIPageViewController, ViewConfigurable {
         pageControl.currentPageIndicatorTintColor = .ypBlack
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         return pageControl
+    }()
+    
+    private lazy var skipButton = {
+        let button = UIButton()
+        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitleColor(.ypWhite, for: .normal)
+        button.backgroundColor = .ypBlack
+        button.layer.cornerRadius = 16
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(skipButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     //  MARK: - Lifecycle Methods
@@ -62,33 +65,28 @@ final class OnboardingViewController: UIPageViewController, ViewConfigurable {
     // MARK: - Setup Views
     
     func setupView() {
-        view.addSubview(pageControl)
+        [pageControl, skipButton].forEach{
+            view.addSubview($0)
+        }
     }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
             pageControl.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -134),
-            pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            skipButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
+            skipButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            skipButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            skipButton.heightAnchor.constraint(equalToConstant: 60),
         ])
     }
     
     //MARK: - Private Methode
     
-    private func navigateToMainController() {
-        
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(true, forKey: "onboardingWasShown")
-        
-        let tabBarController = TabBarController()
-        tabBarController.modalTransitionStyle = .crossDissolve
-        tabBarController.modalPresentationStyle = .fullScreen
-        
-        if let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate,
-           let window = sceneDelegate.window {
-            window.rootViewController = tabBarController
-            
-            UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {}, completion: nil)
-        }
+    @objc private func skipButtonTapped() {
+        UserDefaultsSettings.shared.onboardingWasShown = true
+        didFinishOnboarding?()
     }
 }
 

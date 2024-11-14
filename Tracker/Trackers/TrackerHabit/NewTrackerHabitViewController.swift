@@ -355,7 +355,8 @@ extension NewTrackerHabitViewController: UITableViewDelegate, UITableViewDataSou
         
         switch selectedItem {
         case .category:
-            let categoryViewController = CategoryViewController()
+            let categoryViewModel = CategoryViewModel()
+            let categoryViewController = CategoryViewController(viewModel: categoryViewModel)
             categoryViewController.delegate = self
             let navController = UINavigationController(rootViewController: categoryViewController)
             present(navController, animated: true, completion: nil)

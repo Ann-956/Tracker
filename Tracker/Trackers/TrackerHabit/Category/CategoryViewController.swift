@@ -1,16 +1,37 @@
 import UIKit
 
+//    MARK: - Protocol
+
 protocol CategorySelectionDelegate: AnyObject {
     func didSelectCategory(_ category: TrackerCategory)
 }
 
+protocol CategoryViewModelProtocol: AnyObject {
+    var categories: [TrackerCategory] { get }
+    var onCategoriesUpdated: (([TrackerCategory]) -> Void)? { get set }
+    func fetchCategories()
+    func addCategory(name: String)
+}
+
 final class CategoryViewController: UIViewController, ViewConfigurable {
     
-    //    MARK: - Private variebles
+    // MARK: - Private variables
     
-    private let viewModel = CategoryViewModel()
+    private let viewModel: CategoryViewModelProtocol
     private var selectedCategory: TrackerCategory?
     weak var delegate: CategorySelectionDelegate?
+    
+    // MARK: - Initializer
+    
+    init(viewModel: CategoryViewModelProtocol, selectedCategory: TrackerCategory? = nil) {
+        self.viewModel = viewModel
+        self.selectedCategory = selectedCategory
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     //    MARK: - Private UI elements
     
@@ -37,9 +58,11 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.layer.cornerRadius = 16
+        tableView.layer.masksToBounds = true
         tableView.separatorStyle = .singleLine
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.isScrollEnabled = false
+        tableView.rowHeight = 75
+        tableView.isScrollEnabled = true
         return tableView
     }()
     
@@ -82,12 +105,6 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
         setupTableView()
         fetchCategories()
         updateViewVisibility()
-        
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height).isActive = true
     }
     
     // MARK: - Setup Views
@@ -95,8 +112,8 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
     private func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.rowHeight = 75
+        tableView.register(CellTableCategory.self, forCellReuseIdentifier: "CategoryTableViewCell")
+        tableView.tableFooterView = UIView()
     }
     
     func setupView() {
@@ -113,9 +130,11 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
             starStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             starStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 38),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 28),
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(equalTo: addCategoryButton.topAnchor, constant: -28),
+            
             
             addCategoryButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addCategoryButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
@@ -129,8 +148,8 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
     private func fetchCategories() {
         viewModel.onCategoriesUpdated = { [weak self] categories in
             DispatchQueue.main.async {
-                self?.tableView.reloadData()
                 self?.updateViewVisibility()
+                self?.tableView.reloadData()
             }
         }
         viewModel.fetchCategories()
@@ -143,14 +162,13 @@ final class CategoryViewController: UIViewController, ViewConfigurable {
         } else {
             starStackView.isHidden = true
             tableView.isHidden = false
-            tableView.reloadData()
         }
     }
     
     // MARK: - Action
     
     @objc private func createCategoryTapped() {
-        let createCategoryVC = CreateCategoryViewController(viewModel: self.viewModel)
+        let createCategoryVC = CreateCategoryViewController(viewModel: viewModel)
         navigationController?.pushViewController(createCategoryVC, animated: true)
     }
 }
@@ -161,21 +179,30 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.categories.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryTableViewCell", for: indexPath) as? CellTableCategory else {
+            fatalError("Не удалось dequeCategoryTableViewCell")
+        }
+        
         let category = viewModel.categories[indexPath.row]
         let isSelected = category.name == selectedCategory?.name
-
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = category.name
-        cell.backgroundColor = .ypBackground
-        cell.textLabel?.font = .systemFont(ofSize: 17)
-        cell.textLabel?.textColor = .ypBlack
-        cell.accessoryType = isSelected ? .checkmark : .none
-
+        
+        cell.configure(with: category.name, isSelected: isSelected)
+        
+        if indexPath.row == viewModel.categories.count - 1 {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            cell.clipsToBounds = true
+        } else {
+            cell.layer.cornerRadius = 0
+            cell.clipsToBounds = false
+        }
+        
         return cell
     }
-
+    
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selected = viewModel.categories[indexPath.row]
         selectedCategory = selected
@@ -188,5 +215,5 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
             self.navigationController?.dismiss(animated: true, completion: nil)
         }
     }
-
+    
 }
