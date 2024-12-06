@@ -1,0 +1,118 @@
+// MARK: - Onboarding screen
+
+"title_first_screen" = "Track only what you want";
+"title_second_screen" = "even if it's not liters of water and yoga";
+"skip_button" = "That's the technology!";
+
+// MARK: - Tab Bar
+
+"trackers" = "Trackers";
+"statistics" = "Statistics";
+
+// MARK: - Main screen
+
+"title_main_screen" = "Trackers";
+"search_placeholder" = "Search";
+"empty_star" = "What are we going to track?";
+"nothing_found" = "Nothing was found";
+"filter_button" = "Filters";
+
+// MARK: - Create Tracker Page
+
+"title_create_tracker" = "Creating a tracker";
+"text_button_habit" = "Habit";
+"text_button_event" = "An irregular event";
+
+// MARK: - Create New Tracker Page
+
+"title_create_new_habit" = "New habit";
+"tracker_name_text_field" = "Enter the name of the tracker";
+"error_label_text_field" = "The limit is 38 characters";
+"cancel_button" = "Cancel";
+"create_button" = "Create";
+"edit_tracker_title" = "Edit habit";
+
+// MARK: - Category Page
+
+"title_category_page" = "Category";
+"text_error_label" = "Habits and events can be\ncombined in meaning";
+"text_add_category_button" = "Add category";
+
+// MARK: - New Category Page
+
+"title_new_category_page" = "New Category";
+"category_name_placeholder" = "Enter the name of the category";
+"text_create_button" = "Create";
+
+// MARK: - Schedule Page
+
+"title_schedule_page" = "Schedule";
+"text_create_button" = "Done";
+
+// MARK: - Enum Week Day
+
+"sunday" = "Sunday";
+"monday" = "Monday";
+"tuesday" = "Tuesday";
+"wednesday" = "Wednesday";
+"thursday" = "Thursday";
+"friday" = "Friday";
+"saturday" = "Saturday";
+
+"short_sunday" = "Sun";
+"short_monday" = "Mon";
+"short_tuesday" = "Tue";
+"short_wednesday" = "Wed";
+"short_thursday" = "Thu";
+"short_friday" = "Fri";
+"short_saturday" = "Sat";
+
+// MARK: - Enum Tracker Data Type
+
+"category_name" = "Category";
+"schedule_name" = "Schedule";
+
+// MARK: - Text Every Day
+
+"every day" = "Every day";
+
+// MARK: - Title Collection New Tracker
+
+"emoji_title" = "Emoji";
+"color_title" = "Color";
+
+// MARK: - Context Menu
+
+"edit" = "Edit";
+"unpin" = "Unpin";
+"pin" = "Pin";
+"delete" = "Delete";
+"pinned" = "Pinned";
+"delete_confirmation_message" = "Are you sure you want to delete the tracker?";
+"delete_alert" = "Delete";
+"cancel_alert" = "Cancel";
+
+
+// MARK: - Page Statistics
+
+"title_page_statistics" = "Statistics";
+"statistics_emty_text" = "There is nothing to analyze yet";
+
+"best_period" = "Best period";
+"perfect_days" = "Perfect days";
+"total_completed" = "Total completed";
+"average_completion" = "Average completion";
+
+// MARK: - Page Filter
+
+"all_tracker" = "All tracker";
+"trackers_for_today" = "Trackers for today";
+"completed" = "Completed";
+"incompleted" = "Incompleted";
+"title_filter_page" = "Filters";
+
+// MARK: - Event Page
+
+"title_event_page" = "A new irregular event";
+"title_edit_event_page" = "Edit an irregular event";
+

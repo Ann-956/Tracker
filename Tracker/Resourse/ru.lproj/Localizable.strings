@@ -1,0 +1,118 @@
+// MARK: - Onboarding screen
+
+"title_first_screen" = "Отслеживайте только то, что хотите";
+"title_second_screen" = "Даже если это не литры воды и йога";
+"skip_button" = "Вот это технологии!";
+
+// MARK: - Tab Bar
+
+"trackers" = "Трекеры";
+"statistics" = "Статистика";
+
+// MARK: - Main screen
+
+"title_main_screen" = "Трекеры";
+"search_placeholder" = "Поиск";
+"empty_star" = "Что будем отслеживать?";
+"nothing_found" = "Ничего не найдено";
+"filter_button" = "Фильтры";
+
+// MARK: - Create Tracker Page
+
+"title_create_tracker" = "Создание трекера";
+"text_button_habit" = "Привычка";
+"text_button_event" = "Нерегулярное событие";
+
+// MARK: - Create New Tracker Page
+
+"title_create_new_habit" = "Новая привычка";
+"tracker_name_text_field" = "Введите название трекера";
+"error_label_text_field" = "Ограничение 38 символов";
+"cancel_button" = "Отменить";
+"create_button" = "Создать";
+"edit_tracker_title" = "Редактирование привычки";
+
+// MARK: - Category Page
+
+"title_category_page" = "Категория";
+"text_error_label" = "Привычки и события можно\nобъединить по смыслу";
+"text_add_category_button" = "Добавить категорию";
+
+// MARK: - New Category Page
+
+"title_new_category_page" = "Новая категория";
+"category_name_placeholder" = "Введите название категории";
+"text_create_button" = "Готово";
+
+// MARK: - Schedule Page
+
+"title_schedule_page" = "Расписание";
+"text_create_button" = "Готово";
+
+
+// MARK: - Enum Week Day
+
+"sunday" = "Воскресенье";
+"monday" = "Понедельник";
+"tuesday" = "Вторник";
+"wednesday" = "Среда";
+"thursday" = "Четверг";
+"friday" = "Пятница";
+"saturday" = "Суббота";
+
+"short_sunday" = "Вс";
+"short_monday" = "Пн";
+"short_tuesday" = "Вт";
+"short_wednesday" = "Ср";
+"short_thursday" = "Чт";
+"short_friday" = "Пт";
+"short_saturday" = "Сб";
+
+// MARK: - Enum Tracker Data Type
+
+"category_name" = "Категория";
+"schedule_name" = "Расписание";
+
+// MARK: - Text Every Day
+
+"every day" = "Каждый день";
+
+// MARK: - Title Collection New Tracker
+
+"emoji_title" = "Emoji";
+"color_title" = "Цвет";
+
+// MARK: - Context Menu
+
+"edit" = "Редактировать";
+"unpin" = "Открепить";
+"pin" = "Закрепить";
+"delete" = "Удалить";
+
+"pinned" = "Закрепленные";
+"delete_confirmation_message" = "Уверены что хотите удалить трекер?";
+"delete_alert" = "Удалить";
+"cancel_alert" = "Отмена";
+
+// MARK: - Page Statistics
+
+"title_page_statistics" = "Статистика";
+"statistics_emty_text" = "Анализировать пока нечего";
+
+"best_period" = "Лучший период";
+"perfect_days" = "Идеальные дни";
+"total_completed" = "Трекеров завершено";
+"average_completion" = "Среднее значение";
+
+// MARK: - Page Filter
+
+"all_tracker" = "Все трекеры";
+"trackers_for_today" = "Трекеры на сегодня";
+"completed" = "Завершённые";
+"incompleted" = "Незавершённые";
+"title_filter_page" = "Фильтры";
+
+// MARK: - Event Page
+
+"title_event_page" = "Новое нерегулярное событие";
+"title_edit_event_page" = "Редактировать нерегулярное событие";

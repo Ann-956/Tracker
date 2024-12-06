@@ -1,0 +1,66 @@
+# Xcode
+.DS_Store
+build/
+*.xcuserdatad
+*.xcuserdata
+*.swp
+*.lock
+*.xcworkspace
+xcuserdata/
+DerivedData/
+.idea/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# SwiftPM
+/.swiftpm
+.build/
+
+# CocoaPods
+/Pods/
+/Podfile.lock
+
+# Carthage
+/Carthage/Build/
+/Carthage/Checkouts/
+/Carthage/Packages.resolved
+
+# Fastlane
+/fastlane/report.xml
+/fastlane/screenshots
+/fastlane/test_output
+*.lock
+
+# Archives
+*.xcarchive
+
+# Packages
+/.package/
+.swiftpm/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Custom schemes
+xcshareddata/
+
+# Editor-specific files
+*.swp
+*.orig
+*.dmp
+
+# Mac-specific
+.DS_Store
+.Trashes
+*.swp
+.AppleDouble
+._*
+
+# Thumbnails
+._*
+Thumbs.db
